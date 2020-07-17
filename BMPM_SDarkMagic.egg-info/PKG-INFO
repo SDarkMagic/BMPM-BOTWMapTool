@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: BMPM-SDarkMagic
+Version: 1.0.0
+Summary: A program for bulk replacement of BYML map file parameters.
+Home-page: https://github.com/SDarkMagic/BMPM
+Author: SDarkMagic
+Author-email: TheSDarkMagic@gmail.com
+License: UNKNOWN
+Description: # BMPM
+         A script for manipulating parameters contained within BotW's map files in bulk.
+        
+        # Installation
+         Copy the ".exe" file to C:/Users/(username)/AppData/local/Programs/Python/scripts/ OR add the directory containing the compiled script to your PATH
+        
+        # Usage
+         The batch file included is for recursively going through directories and editing all "LevelSensorMode" parameters to 1
+         For more information on how to use the script, type "bymlMapParamEditor -h" or "bymlMapParamEditor --help"
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
