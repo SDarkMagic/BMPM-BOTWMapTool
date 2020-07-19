@@ -1,8 +1,0 @@
-README.md
-setup.py
-BMPM_SDarkMagic.egg-info/PKG-INFO
-BMPM_SDarkMagic.egg-info/SOURCES.txt
-BMPM_SDarkMagic.egg-info/dependency_links.txt
-BMPM_SDarkMagic.egg-info/top_level.txt
-Scripts/__init__.py
-Scripts/bymlMapParamEditor.py
