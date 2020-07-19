@@ -5,7 +5,7 @@ with open("README.md", "r") as desc:
 
 setuptools.setup(
     name="BMPM",
-    version="1.2.2",
+    version="1.2.5",
     author="SDarkMagic",
     author_email="TheSDarkMagic@gmail.com",
     description="A program for bulk replacement of BYML map file parameters.",
@@ -13,7 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/SDarkMagic/BMPM",
     packages=setuptools.find_packages(),
-    scripts=['bmpm/__main__.py'],
+    entry_points={
+        'console_scripts': ['bmpm=bmpm.__main__:main']
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
