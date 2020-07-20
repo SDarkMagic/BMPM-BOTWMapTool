@@ -1,8 +1,8 @@
 # BMPM (Botw Map Parameter Manipulator)
- A script for manipulating parameters contained within BotW's map files in bulk (currently only functions on paramaters contained withing the '!Parameters' section of actors in a map file.)
+ A script for manipulating parameters contained within BotW's map files in bulk.
 
 # Installation
- Copy the ".exe" file to C:/Users/(username)/AppData/local/Programs/Python/scripts/ OR add the directory containing the compiled script to your PATH
+ Copy the ".exe" file to C:/Users/(username)/AppData/local/Programs/Python/scripts/ OR add the directory containing the compiled script to your PATH (Please note that the exe is not up to date)
  <br>
  OR
  <br>

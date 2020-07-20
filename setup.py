@@ -5,7 +5,7 @@ with open("README.md", "r") as desc:
 
 setuptools.setup(
     name="BMPM",
-    version="1.2.5",
+    version="1.3.0",
     author="SDarkMagic",
     author_email="TheSDarkMagic@gmail.com",
     description="A program for bulk replacement of BYML map file parameters.",

@@ -32,15 +32,20 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
         exactItem = array[iterate]
         entryDict.update(exactItem)
         iterate += 1
+
+        for key in entryDict.keys():
+            if (key.lower() == termToSearch.lower()):
+                entryDict.update({key: replacementParamType})
+
         if (entryDict.get('!Parameters') is not None):
 #                print('Found "!Parameters" value in entry from file')
             paramDict.update(entryDict.get('!Parameters'))
             for key in paramDict.keys():
 #                    print('Checking if param is the same as user input to be replaced')
-                if (key == termToSearch):
-                    paramDict.update({termToSearch: replacementParamType})
+                if (key.lower() == termToSearch.lower()):
+                    paramDict.update({key: replacementParamType})
                     entryDict.update({'!Parameters': paramDict})
-#                        print('Successfully replaced parameter')
+#                    print('Successfully replaced parameter')
         
 #        print(entryDict)
         objList.append(oead.byml.Hash(entryDict))
