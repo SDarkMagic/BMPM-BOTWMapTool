@@ -5,14 +5,15 @@ with open("README.md", "r") as desc:
 
 setuptools.setup(
     name="BMPM",
-    version="1.4.1",
+    version="1.4.3",
     author="SDarkMagic",
     author_email="TheSDarkMagic@gmail.com",
     description="A program for bulk replacement of BYML map file parameters.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/SDarkMagic/BMPM",
-    packages=setuptools.find_packages(),
+    packages=['bmpm'],
+#    package_dir={'bmpm': 'scripts'},
     entry_points={
         'console_scripts': ['bmpm=bmpm.__main__:main']
     },
