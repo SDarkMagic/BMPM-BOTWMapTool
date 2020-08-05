@@ -16,3 +16,8 @@
  The batch (currently outdated) file included is for recursively going through directories and editing all "LevelSensorMode" parameters to 1
  To delete an actor or set of actors, use `bmpm delete`; for editing paramaters, use `bmpm edit`.
  For more information on how to use the script, type "bmpm -h" or "bmpm --help"
+
+# To-Do
+ Create UI
+ Implement recursive file handling
+ Option to delete all actors linke to one being deleted.
