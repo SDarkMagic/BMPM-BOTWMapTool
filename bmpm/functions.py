@@ -63,6 +63,72 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
         fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
         print("Compressing file.")
 
-#    def removeActor(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
-
     fileWrite.close()
+    print('Done!')
+
+def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
+    fileDict = {}
+    entryDict = {}
+    paramDict = {}
+    iterate = 0
+    objList = []
+    deleted = False
+    fileToOpen = open(fileToOpen, 'rb').read()
+    uncompressedFile = checkCompression(fileToOpen)
+    extractByml = oead.byml.from_binary(uncompressedFile)
+    for key in extractByml.keys():
+        fileDict.update({key: extractByml.get(key)})
+    array = fileDict.get('Objs')
+
+    if (int(nameHash) == 0 or str(nameHash).lower() == 'hash'):
+        actorToDel = int(actorToDel)
+        actorToDel = oead.U32(value=actorToDel)
+    elif (int(nameHash) == 1 or str(nameHash).lower() == 'name'):
+        actorToDel = str(actorToDel)
+
+    for entry in array:
+        exactItem = array[iterate]
+        entryDict.update(exactItem)
+        iterate += 1
+
+        for key in entryDict.keys():
+            if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
+                deleted = True
+
+        if (entryDict.get('!Parameters') is not None):
+#                print('Found "!Parameters" value in entry from file')
+            paramDict.update(entryDict.get('!Parameters'))
+            for key in paramDict.keys():
+#                    print('Checking if param is the same as user input to be replaced')
+                if (str(paramDict.get(key)).lower() == str(actorToDel).lower()):
+                    deleted = True
+        
+#        print(entryDict)
+        if (deleted != True):
+            objList.append(oead.byml.Hash(entryDict))
+        elif (deleted == True):
+            paramDict.clear()
+            entryDict.clear()
+            deleted = False
+            continue
+        paramDict.clear()
+        entryDict.clear()
+        deleted = False
+
+    fileDict.update({'Objs': objList})
+    if (args.noCompression):
+            extList = []
+            fileExt = fileExt.lstrip('.s')
+            fileExt = ('.') + fileExt
+            fileWrite = open(fileName + fileExt, 'wb')
+            fileWrite.write(oead.byml.to_binary(fileDict, False))
+
+    else:
+        fileWrite = open(fileName + fileExt, 'wb')
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+        print("Compressing file.")
+    fileWrite.close()
+    print('Done!')
+
+
+

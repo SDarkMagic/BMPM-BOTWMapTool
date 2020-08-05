@@ -13,5 +13,6 @@
  Download a zip of the code and run "python setup.py install" from the cli within the directory containing the files to install and setup the files
 
 # Usage
- The batch file included is for recursively going through directories and editing all "LevelSensorMode" parameters to 1
- For more information on how to use the script, type "bymlMapParamEditor -h" or "bymlMapParamEditor --help"
+ The batch (currently outdated) file included is for recursively going through directories and editing all "LevelSensorMode" parameters to 1
+ To delete an actor or set of actors, use `bmpm delete`; for editing paramaters, use `bmpm edit`.
+ For more information on how to use the script, type "bmpm -h" or "bmpm --help"
