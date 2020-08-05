@@ -1,7 +1,7 @@
 import argparse
 import oead
 import os
-import bmpm as bmpm
+from bmpm import functions
 
 def main():
 #   Cli Arguments Setup
@@ -35,7 +35,7 @@ def main():
 
     if (args.subParserType == 'edit'):
         print('e')
-        bmpm.functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
+        functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
 
 if __name__ == "__main__":
     main()
