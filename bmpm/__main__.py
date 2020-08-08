@@ -14,6 +14,7 @@ def main():
 
     editParser = subParser.add_parser('edit', help='edit')
     editParser.add_argument('termToSearch', type=str, help='Term to look through the file and find.')
+    editParser.add_argument('--value', '-v', type=str, metavar='value', dest='value', help='Value to match with params found in file.', required=False, default=None)
     editParser.add_argument('replacementTerm', help='Value to replace the original termToSearch value with.')
     editParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1'], help='A value of 0 meaning an integer or 1 meaning a string to set the replacement term as. (defaults to zero)', required=False, default=0)
 
@@ -39,7 +40,11 @@ def main():
         elif (int(args.type) == 1):
             replacementParamType = str(replaceTerm)
 
-        functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
+        if (args.value != None):
+            valToSearch = args.value
+            functions.replaceActor(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+        else:
+            functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
 
     elif (args.subParserType == 'delete'):
         actorToDel = args.ActorToDelete
