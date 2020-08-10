@@ -1,6 +1,8 @@
+# __main__.py
 import argparse
 import oead
 import os
+import pathlib
 from bmpm import functions
 
 def main():
@@ -21,13 +23,24 @@ def main():
     remParser = subParser.add_parser('delete', help='delete')
     remParser.add_argument('ActorToDelete', help='The actor name or HashID you would like removed from the map file.')
     remParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
-    args = parser.parse_args()
+
+    convParser = subParser.add_parser('convert', help='Converts one actor to another based off of a template.')
+#    convParser.add_argument('KeyToSearchBy', type=str, help='General term from which to get the value needed')
+    convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
+    convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
+
+    genParser = subParser.add_parser('genDB', help='Generate the database of actors necessary for using the replace actor function. Only needs to be run once.')
+
 
 #   Global Variables
-    fileName = str(args.fileIn).split('.')[0]
-    fileExt = ('.' + str(args.fileIn).split('.')[-1])
-    fileToOpen = args.fileIn
-    openFile = open(fileToOpen, 'rb')
+    args = parser.parse_args()
+    fileToOpen = pathlib.Path(args.fileIn)
+    if fileToOpen.is_dir():
+        print('Path object inputted was a directory')
+    else:
+        fileName = str(args.fileIn).split('.')[0]
+        fileExt = ('.' + str(args.fileIn).split('.')[-1])
+        openFile = open(fileToOpen, 'rb')
 
 
     if (args.subParserType == 'edit'):
@@ -42,7 +55,7 @@ def main():
 
         if (args.value != None):
             valToSearch = args.value
-            functions.replaceActor(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+            functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
         else:
             functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
 
@@ -50,6 +63,12 @@ def main():
         actorToDel = args.ActorToDelete
         nameHash = args.type
         functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
+
+    elif(args.subParserType == 'genDB'):
+        if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
+            functions.genActorDatabase(fileToOpen)
+        else:
+            print('Cancelling operation.')
 
     else:
         print(f'The option {str(args.subParserType)} could not be found.')
