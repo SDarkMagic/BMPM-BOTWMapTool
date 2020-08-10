@@ -20,7 +20,7 @@ def main():
     editParser.add_argument('replacementTerm', help='Value to replace the original termToSearch value with.')
     editParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1'], help='A value of 0 meaning an integer or 1 meaning a string to set the replacement term as. (defaults to zero)', required=False, default=0)
 
-    remParser = subParser.add_parser('delete', help='delete')
+    remParser = subParser.add_parser('delete', help='Remove an actor or actors from the map file(s) based on either name or hashID')
     remParser.add_argument('ActorToDelete', help='The actor name or HashID you would like removed from the map file.')
     remParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
 

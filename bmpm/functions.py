@@ -339,4 +339,4 @@ def genActorDatabase(mapDir):
     actorDatabaseFileWrite = open(DBPath, 'wt')
     actorDatabaseFileWrite.write(json.dumps(paramDict, indent=2))
     actorDatabaseFileWrite.close()
-    print(f'File was saved to {DBPath}')
+    print(f'File was succesfully saved to {DBPath}')

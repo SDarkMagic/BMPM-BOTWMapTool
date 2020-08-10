@@ -13,13 +13,20 @@ def data_dir():
 
 def checkDir(dirToLoop):
     fileList = []
-    for subDir in dirToLoop.iterdir():
-        if subDir.is_dir():
-            checkDir(subDir)
-        else:
-            if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
+    if dirToLoop.is_file():
+        subDir = dirToLoop
+        if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
                 fileList.append(subDir)
-                continue
+        else:
+            print('File entered was not a proper map file.')
+    else:
+        for subDir in dirToLoop.iterdir():
+            if subDir.is_dir():
+                checkDir(subDir)
             else:
-                continue
+                if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
+                    fileList.append(subDir)
+                    continue
+                else:
+                    continue
     return(fileList)

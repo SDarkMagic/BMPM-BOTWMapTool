@@ -19,5 +19,5 @@
 
 # To-Do
  Create UI
- Implement recursive file handling
+ ~~Implement recursive file handling~~
  Option to delete all actors linked to one being deleted.
