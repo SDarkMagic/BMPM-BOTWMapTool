@@ -4,6 +4,7 @@ import oead
 import os
 import pathlib
 from bmpm import functions
+from bmpm import util
 
 def main():
 #   Cli Arguments Setup
@@ -25,7 +26,7 @@ def main():
     remParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
 
     convParser = subParser.add_parser('convert', help='Converts one actor to another based off of a template.')
-#    convParser.add_argument('KeyToSearchBy', type=str, help='General term from which to get the value needed')
+    convParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
     convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
     convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
 
@@ -35,43 +36,49 @@ def main():
 #   Global Variables
     args = parser.parse_args()
     fileToOpen = pathlib.Path(args.fileIn)
-    if fileToOpen.is_dir():
-        print('Path object inputted was a directory')
-    else:
-        fileName = str(args.fileIn).split('.')[0]
-        fileExt = ('.' + str(args.fileIn).split('.')[-1])
-        openFile = open(fileToOpen, 'rb')
+    fileList = util.checkDir(fileToOpen)
+    for fileObj in fileList:
+        fileToOpen = fileObj
+        fileName = str(fileObj).split('.')[0]
+        fileExt = ('.' + str(fileObj).split('.')[-1])
+        openFile = open(fileObj, 'rb')
 
 
-    if (args.subParserType == 'edit'):
-        termToSearch = args.termToSearch
-        replaceTerm = args.replacementTerm
+        if (args.subParserType == 'edit'):
+            termToSearch = args.termToSearch
+            replaceTerm = args.replacementTerm
 
-        replacementParamType = None
-        if (int(args.type) == 0):
-            replacementParamType = oead.S32(value=int(replaceTerm))
-        elif (int(args.type) == 1):
-            replacementParamType = str(replaceTerm)
+            replacementParamType = None
+            if (int(args.type) == 0):
+                replacementParamType = oead.S32(value=int(replaceTerm))
+            elif (int(args.type) == 1):
+                replacementParamType = str(replaceTerm)
 
-        if (args.value != None):
-            valToSearch = args.value
-            functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+            if (args.value != None):
+                valToSearch = args.value
+                functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+            else:
+                functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
+
+        elif (args.subParserType == 'delete'):
+            actorToDel = args.ActorToDelete
+            nameHash = args.type
+            functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
+
+        elif (args.subParserType == 'convert'):
+            actorToConv = args.actorConvertFrom
+            actorConvTo = args.actorConvertTo
+            nameHash = args.type 
+            functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
+
+        elif(args.subParserType == 'genDB'):
+            if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
+                functions.genActorDatabase(fileToOpen)
+            else:
+                print('Cancelling operation.')
+
         else:
-            functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
-
-    elif (args.subParserType == 'delete'):
-        actorToDel = args.ActorToDelete
-        nameHash = args.type
-        functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
-
-    elif(args.subParserType == 'genDB'):
-        if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
-            functions.genActorDatabase(fileToOpen)
-        else:
-            print('Cancelling operation.')
-
-    else:
-        print(f'The option {str(args.subParserType)} could not be found.')
+            print(f'The option {str(args.subParserType)} could not be found.')
 
 if __name__ == "__main__":
     main()

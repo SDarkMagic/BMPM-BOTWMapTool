@@ -5,20 +5,9 @@ import pathlib
 import json
 from bmpm import util
 
-paramDB = None
 dataPath = util.data_dir()
 
-# Function for loading the actor parameter database when necessary
-def loadActorDatabase():
-    global paramDB
-    currentDir = pathlib.Path('./bmpm')
-    jsonFile = currentDir / 'paramDB.json'
-    if (paramDB == None):
-        if (jsonFile.exists() == True):
-            open(jsonFile, 'rt')
-        else:
-            print('The actor parameter database could not be found. Please create one by runnin "bmpm createDB" followed by where the map files from your game dump are stored.')
-    return(paramDB)
+
 
 def checkDataTypes(valIn):
     valOut = None
@@ -235,11 +224,11 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
     print('Done!')
 
 # function for replacing all instances of a specific actor with a new actor including actor specific parameters
-def replaceActor(fileToOpen, fileName, fileExt, termToSearch, replacementTerm, args):
-    loadActorDatabase()
+def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args):
+    paramDB = util.loadActorDatabase()
     fileDict = {}
-    entryDict = {}
     paramDict = {}
+    entryDict = {}
     iterate = 0
     objList = []
     fileToOpen = open(fileToOpen, 'rb').read()
@@ -247,47 +236,70 @@ def replaceActor(fileToOpen, fileName, fileExt, termToSearch, replacementTerm, a
     extractByml = oead.byml.from_binary(uncompressedFile)
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
-    array = fileDict.get('Objs')
+    array = list(fileDict.get('Objs'))
 
-    for entry in array:
-        exactItem = array[iterate]
-        entryDict.update(exactItem)
-        iterate += 1
+    if (int(nameHash) == 0 or str(nameHash).lower() == 'hash'):
+        convFrom = oead.U32(value=int(convFrom))
+    elif (int(nameHash) == 1 or str(nameHash).lower() == 'name'):
+        convFrom = str(convFrom)
 
-        for key in entryDict.keys():
-            if (key.lower() == keyToSearch.lower() and str(entryDict.get(key)).lower() == termToSearch.lower()):
-                entryDict.update({key: replacementTerm})
+    if (convTo in paramDB.keys()):
+        for entry in array:
+            exactItem = dict(entry)
+#            print(dict(entry))
+            entryDict.update(exactItem)
+            iterate += 1
 
-        if (entryDict.get('!Parameters') is not None):
-#                print('Found "!Parameters" value in entry from file')
-            paramDict.update(entryDict.get('!Parameters'))
-            for key in paramDict.keys():
-#                    print('Checking if param is the same as user input to be replaced')
-                if (key.lower() == keyToSearch.lower() and str(entryDict.get(key)).lower() == termToSearch.lower()):
-                    paramDict.update({key: replacementTerm})
-                    entryDict.update({'!Parameters': paramDict})
-#                    print('Successfully replaced parameter')
-        
-#        print(entryDict)
-        objList.append(oead.byml.Hash(entryDict))
-        paramDict.clear()
-        entryDict.clear()
+            for key in entryDict.keys():
+                if (str(entryDict.get(key)).lower() == str(convFrom).lower()):
+                    entryDict.update({'UnitConfigName': convTo})
+#                    print(dict(entryDict.get('!Parameters')))
+                    if (paramDB.get(convTo) is not None):
+                        paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
+                        paramDict.update((paramDBGet))
+#                        print(paramDict)
+#                        print(paramDBGet)
+                        entryDict.update({"!Parameters": dict(paramDict)})
+#                        print(oead.byml.Hash(paramDict))
+#                        print(entryDict)
+#                        print(paramDict)
+#                        entryDict.update({"!Parameters": paramDict})
+#                        print(util.dictParamsToByml(paramDB.get(convTo)))
+                    else:
+                        try:
+                            entryDict.pop(str("!Parameters"))
+                        except:
+                            continue
+                    break
+                else:
+                    continue
+#            try:
+#                print(dict(dict(entryDict).get('!Parameters')))
+#            except:
+#                print('woops')
+            objList.append(dict(entryDict))
+            entryDict.clear()
+            paramDict.clear()
+#        print(objList)
+#        print(objList)
+        fileDict.update({'Objs': oead.byml.Array(objList)})
+        fileDict = (fileDict)
+        if (args.noCompression):
+                extList = []
+                fileExt = fileExt.lstrip('.s')
+                fileExt = ('.') + fileExt
+                fileWrite = open(fileName + fileExt, 'wb')
+                fileWrite.write(oead.byml.to_binary(fileDict, False))
 
-    fileDict.update({'Objs': objList})
-    if (args.noCompression):
-            extList = []
-            fileExt = fileExt.lstrip('.s')
-            fileExt = ('.') + fileExt
+        else:
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, False))
+            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+            print("Compressing file.")
 
+        fileWrite.close()
+        print('Done!')
     else:
-        fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
-        print("Compressing file.")
-
-    fileWrite.close()
-    print('Done!')
+        print(f'Error: Could not find the value {convTo} in the database. Check your spelling or try regenerating the database.')
 
 # a function for generating the necessary actor database from ones game dump
 def genActorDatabase(mapDir):
