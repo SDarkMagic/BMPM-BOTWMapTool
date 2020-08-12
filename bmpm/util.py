@@ -18,20 +18,29 @@ def checkDir(dirToLoop):
     if dirToLoop.is_file():
         subDir = dirToLoop
         if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
-                fileList.append(subDir)
+            fileList.append(subDir)
         else:
-            print('File entered was not a proper map file.')
+            print('File entered was not a proper map file A.')
     else:
         for subDir in dirToLoop.iterdir():
+#            print(str(subDir).split('.')[-1])
             if subDir.is_dir():
-                checkDir(subDir)
+                fileList.extend(checkDir(subDir))
             else:
                 if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
                     fileList.append(subDir)
-                    continue
                 else:
+                    print('File entered was not a proper map file. B')
                     continue
+#    print(fileList)
     return(fileList)
+"""    if dirToLoop.is_file():
+        subDir = dirToLoop
+        if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
+                fileList.append(subDir)
+        else:
+            print('File entered was not a proper map file.')
+"""
 
 # Function for loading the actor parameter database when necessary
 def loadActorDatabase():

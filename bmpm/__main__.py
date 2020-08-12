@@ -36,49 +36,47 @@ def main():
 #   Global Variables
     args = parser.parse_args()
     fileToOpen = pathlib.Path(args.fileIn)
-    fileList = util.checkDir(fileToOpen)
-    for fileObj in fileList:
-        fileToOpen = fileObj
+    fileToOpen = fileToOpen
+    if fileToOpen.is_file():
         fileName = str(fileObj).split('.')[0]
         fileExt = ('.' + str(fileObj).split('.')[-1])
-        openFile = open(fileObj, 'rb')
 
 
-        if (args.subParserType == 'edit'):
-            termToSearch = args.termToSearch
-            replaceTerm = args.replacementTerm
+    if (args.subParserType == 'edit'):
+        termToSearch = args.termToSearch
+        replaceTerm = args.replacementTerm
 
-            replacementParamType = None
-            if (int(args.type) == 0):
-                replacementParamType = oead.S32(value=int(replaceTerm))
-            elif (int(args.type) == 1):
-                replacementParamType = str(replaceTerm)
+        replacementParamType = None
+        if (int(args.type) == 0):
+            replacementParamType = oead.S32(value=int(replaceTerm))
+        elif (int(args.type) == 1):
+            replacementParamType = str(replaceTerm)
 
-            if (args.value != None):
-                valToSearch = args.value
-                functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
-            else:
-                functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
-
-        elif (args.subParserType == 'delete'):
-            actorToDel = args.ActorToDelete
-            nameHash = args.type
-            functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
-
-        elif (args.subParserType == 'convert'):
-            actorToConv = args.actorConvertFrom
-            actorConvTo = args.actorConvertTo
-            nameHash = args.type 
-            functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
-
-        elif(args.subParserType == 'genDB'):
-            if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
-                functions.genActorDatabase(fileToOpen)
-            else:
-                print('Cancelling operation.')
-
+        if (args.value != None):
+            valToSearch = args.value
+            functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
         else:
-            print(f'The option {str(args.subParserType)} could not be found.')
+            functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
+
+    elif (args.subParserType == 'delete'):
+        actorToDel = args.ActorToDelete
+        nameHash = args.type
+        functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
+
+    elif (args.subParserType == 'convert'):
+        actorToConv = args.actorConvertFrom
+        actorConvTo = args.actorConvertTo
+        nameHash = args.type 
+        functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
+
+    elif(args.subParserType == 'genDB'):
+        if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
+            functions.genActorDatabase(fileToOpen)
+        else:
+            print('Cancelling operation.')
+
+    else:
+        print(f'The option {str(args.subParserType)} could not be found.')
 
 if __name__ == "__main__":
     main()

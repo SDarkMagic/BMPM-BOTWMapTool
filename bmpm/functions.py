@@ -225,7 +225,10 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
 
 # function for replacing all instances of a specific actor with a new actor including actor specific parameters
 def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args):
-    paramDB = util.loadActorDatabase()
+    try:
+        paramDB = util.loadActorDatabase()
+    except:
+        return
     fileDict = {}
     paramDict = {}
     entryDict = {}
@@ -304,7 +307,7 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
 # a function for generating the necessary actor database from ones game dump
 def genActorDatabase(mapDir):
     mapDir = pathlib.Path(mapDir)
-    fileList = util.checkDir(mapDir)
+    mapFileList = util.checkDir(mapDir)
     DBPath = pathlib.Path(dataPath / 'actorParamDatabase.json')
     if DBPath.exists():
         actorDatabaseFileRead = open(DBPath, 'rt')
@@ -313,41 +316,48 @@ def genActorDatabase(mapDir):
     else:
         paramDict = {}
     fileDict = {}
-    iterCount = 0
+#    iterCount = 0
     
-    for filePath in fileList:
+    for filePath in mapFileList:
+#        print(mapFileList)
+#        print(filePath)
         fileOpen = open(filePath, 'rb')
         uncompressedFile = checkCompression(fileOpen.read())
         extractByml = oead.byml.from_binary(uncompressedFile)
         for key in extractByml.keys():
             fileDict.update({key: extractByml.get(key)})
-        array = fileDict.get('Objs')
-        for subDict in array:
-            entryDict = {}
-            exactItem = array[iterCount]
-            entryDict.update(exactItem)
-            subParamDict = {}
-            iterCount += 1
-            objName = entryDict.get('UnitConfigName')
-            if objName in paramDict.keys():
-                continue
-            else:
-                if entryDict.get('!Parameters') != None:
-                    subParamDict.update(dict(entryDict.get('!Parameters')))
-                    for key in subParamDict.keys():
-                        testVal = subParamDict.get(key)
-                        valOut = checkDataTypes(testVal)
-                        if valOut != None:
-                            subParamDict.update({key: valOut})
-                        else:
-                            print('Sub-dict entry was set to None')
-                            subParamDict.update({key: valOut})
-                            continue
+        try:
+            array = list(fileDict.get('Objs'))
+        except:
+            continue
+        if array != None:
+            for dictObj in array:
+                entryDict = {}
+                exactItem = dict(dictObj)
+                entryDict.update(dict(exactItem))
+                subParamDict = {}
+#                iterCount += 1
+                objName = entryDict.get('UnitConfigName')
+                if objName in paramDict.keys():
+                    entryDict.clear()
+                    continue
                 else:
-                    subParamDict = None
-                paramDict.update({objName: subParamDict})
-        fileOpen.close()
-        iterCount = 0
+                    if entryDict.get("!Parameters") != None:
+                        subParamDict.update(dict(entryDict.get('!Parameters')))
+                        for key in subParamDict.keys():
+                            testVal = subParamDict.get(key)
+                            valOut = checkDataTypes(testVal)
+#                            print(valOut)
+                            subParamDict.update({key: valOut})
+                    else:
+                        continue
+                    paramDict.update({objName: dict(subParamDict)})
+                subParamDict.clear()
+            fileOpen.close()
+#                iterCount = 0
+        else:
+            print('No map files could be found...')        
+
     actorDatabaseFileWrite = open(DBPath, 'wt')
     actorDatabaseFileWrite.write(json.dumps(paramDict, indent=2))
     actorDatabaseFileWrite.close()
