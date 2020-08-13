@@ -24,4 +24,4 @@
  <br>
  Option to delete all actors linked to one being deleted.
  <br>
- Add option for big endian so that the wiiU/Cemu plebs can also use the tool
+ ~~Add option for big endian so that the wiiU/Cemu plebs can also use the tool~~

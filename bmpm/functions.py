@@ -53,6 +53,7 @@ def checkCompression(fileCheck):
 
 # Function for replacing inputted parameter with other user input
 def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args):
+    endian = args.endian
     fileDict = {}
     entryDict = {}
     paramDict = {}
@@ -64,7 +65,6 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
     array = fileDict.get('Objs')
-
     for entry in array:
         exactItem = array[iterate]
         entryDict.update(exactItem)
@@ -95,11 +95,11 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, False))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
         print("Compressing file.")
     fileWrite.close()
     print('Done!')
@@ -160,11 +160,11 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, False))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
         print("Compressing file.")
     fileWrite.close()
     print('Done!')
@@ -213,11 +213,11 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, False))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
         print("Compressing file.")
 
     fileWrite.close()
@@ -292,17 +292,17 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
                 fileExt = fileExt.lstrip('.s')
                 fileExt = ('.') + fileExt
                 fileWrite = open(fileName + fileExt, 'wb')
-                fileWrite.write(oead.byml.to_binary(fileDict, False))
+                fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
 
         else:
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, False)))
+            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
             print("Compressing file.")
 
         fileWrite.close()
         print('Done!')
     else:
-        print(f'Error: Could not find the value {convTo} in the database. Check your spelling or try regenerating the database.')
+        print(f'Error: Could not find the value {convTo} in the database. Check your spelling and/or capitalization or try regenerating the database.')
 
 # a function for generating the necessary actor database from ones game dump
 def genActorDatabase(mapDir):

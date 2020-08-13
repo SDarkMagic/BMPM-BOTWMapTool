@@ -11,9 +11,10 @@ def main():
     progDesc = "A program for bulk replacing and deleting parameters and actors in BotW BYML map files."
 
     parser = argparse.ArgumentParser(description=progDesc)
-    subParser = parser.add_subparsers(description='temp', dest='subParserType')
+    subParser = parser.add_subparsers(description='Sub-Commands required to use the functions of BMPM', dest='subParserType')
     parser.add_argument('fileIn', type=str, help="File to open and read data from.")
     parser.add_argument('--noCompression', '-nc', action='store_true', help='Add this if you would prefer the program to not compress the output file with yaz0.')
+    parser.add_argument('--bigEndian', '-be', action='store_true', dest='endian', help='Outputs the files in a big endian format', required=False, default=False)
 
     editParser = subParser.add_parser('edit', help='edit')
     editParser.add_argument('termToSearch', type=str, help='Term to look through the file and find.')
@@ -38,36 +39,66 @@ def main():
     fileToOpen = pathlib.Path(args.fileIn)
     fileToOpen = fileToOpen
     if fileToOpen.is_file():
+        fileObj = fileToOpen
         fileName = str(fileObj).split('.')[0]
         fileExt = ('.' + str(fileObj).split('.')[-1])
+    else:
+        print('Directory entered, beginning recursive processes.')
 
 
     if (args.subParserType == 'edit'):
         termToSearch = args.termToSearch
         replaceTerm = args.replacementTerm
-
         replacementParamType = None
         if (int(args.type) == 0):
             replacementParamType = oead.S32(value=int(replaceTerm))
         elif (int(args.type) == 1):
             replacementParamType = str(replaceTerm)
 
-        if (args.value != None):
-            valToSearch = args.value
-            functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+
+
+        if fileToOpen.is_dir():
+            fileList = util.checkDir(fileToOpen)
+            for fileToOpen in fileList:
+                fileName = str(fileToOpen).split('.')[0]
+                fileExt = ('.' + str(fileToOpen).split('.')[-1])
+
+                if (args.value != None):
+                    valToSearch = args.value
+                    functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+                else:
+                    functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
         else:
-            functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
+            if (args.value != None):
+                valToSearch = args.value
+                functions.replaceSpfxParam(fileToOpen, fileName, fileExt, termToSearch, valToSearch, replacementParamType, args)
+            else:
+                functions.replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args)
 
     elif (args.subParserType == 'delete'):
         actorToDel = args.ActorToDelete
         nameHash = args.type
-        functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
+        if fileToOpen.is_dir():
+            fileList = util.checkDir(fileToOpen)
+            for fileToOpen in fileList:
+                fileName = str(fileToOpen).split('.')[0]
+                fileExt = ('.' + str(fileToOpen).split('.')[-1])
+                functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
+        else:
+            functions.removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args)
 
     elif (args.subParserType == 'convert'):
         actorToConv = args.actorConvertFrom
         actorConvTo = args.actorConvertTo
         nameHash = args.type 
-        functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
+        if fileToOpen.is_dir():
+            fileList = util.checkDir(fileToOpen)
+            for fileToOpen in fileList:
+                fileName = str(fileToOpen).split('.')[0]
+                fileExt = ('.' + str(fileToOpen).split('.')[-1])
+                functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
+        else:
+            functions.replaceActor(fileToOpen, fileName, fileExt, nameHash, actorToConv, actorConvTo, args)
 
     elif(args.subParserType == 'genDB'):
         if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
