@@ -5,6 +5,8 @@ import os
 import pathlib
 from bmpm import functions
 from bmpm import util
+from bmpm.__version__ import version
+
 
 def main():
 #   Cli Arguments Setup
@@ -12,7 +14,8 @@ def main():
 
     parser = argparse.ArgumentParser(description=progDesc)
     subParser = parser.add_subparsers(description='Sub-Commands required to use the functions of BMPM', dest='subParserType')
-    parser.add_argument('fileIn', type=str, help="File to open and read data from.")
+    parser.add_argument('fileIn', type=str, help="File to open and read data from.", default=None)
+#    parser.add_argument('--version', '-v', dest='version', help='Displays the current version of BMPM being run.', required=False)
     parser.add_argument('--noCompression', '-nc', action='store_true', help='Add this if you would prefer the program to not compress the output file with yaz0.')
     parser.add_argument('--bigEndian', '-be', action='store_true', dest='endian', help='Outputs the files in a big endian format', required=False, default=False)
 
@@ -28,6 +31,7 @@ def main():
 
     convParser = subParser.add_parser('convert', help='Converts one actor to another based off of a template.')
     convParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
+    convParser.add_argument('--fragment', '-f', dest='subStr', action='store_true', help='Whether or not the inputted search term is a prefix to search for or not.', required=False)
     convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
     convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
 
@@ -36,14 +40,15 @@ def main():
 
 #   Global Variables
     args = parser.parse_args()
-    fileToOpen = pathlib.Path(args.fileIn)
-    fileToOpen = fileToOpen
-    if fileToOpen.is_file():
-        fileObj = fileToOpen
-        fileName = str(fileObj).split('.')[0]
-        fileExt = ('.' + str(fileObj).split('.')[-1])
-    else:
-        print('Directory entered, beginning recursive processes.')
+    if (args.fileIn != None):
+        fileToOpen = pathlib.Path(args.fileIn)
+        fileToOpen = fileToOpen
+        if fileToOpen.is_file():
+            fileObj = fileToOpen
+            fileName = str(fileObj).split('.')[0]
+            fileExt = ('.' + str(fileObj).split('.')[-1])
+        else:
+            print('Directory entered, beginning recursive processes.')
 
 
     if (args.subParserType == 'edit'):
@@ -105,6 +110,9 @@ def main():
             functions.genActorDatabase(fileToOpen)
         else:
             print('Cancelling operation.')
+    
+#    elif(args.subParserType == 'version'):
+#        print(f"BMPM-{str(version)}")
 
     else:
         print(f'The option {str(args.subParserType)} could not be found.')

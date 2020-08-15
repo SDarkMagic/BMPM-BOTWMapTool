@@ -1,11 +1,14 @@
 import setuptools
+import pathlib
 
 with open("README.md", "r") as desc:
     long_description = desc.read()
 
+from bmpm.__version__ import version
+
 setuptools.setup(
     name="BMPM",
-    version="3.1.0",
+    version=str(version),
     author="SDarkMagic",
     author_email="TheSDarkMagic@gmail.com",
     description="A program for bulk replacement of BYML map file parameters.",

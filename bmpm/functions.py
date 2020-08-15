@@ -95,17 +95,18 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
         print("Compressing file.")
     fileWrite.close()
     print('Done!')
 
 # function for removing all instances of specified actor from a map file
 def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
+    endian = args.endian
     fileDict = {}
     entryDict = {}
     paramDict = {}
@@ -160,17 +161,18 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
         print("Compressing file.")
     fileWrite.close()
     print('Done!')
 
 # more specific version of replaceParam that requires a key: value pair to be searched; e.g. "unitConfigName: Enemy_Guardian_A"
 def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, replacementTerm, args):
+    endian = args.endian
     fileDict = {}
     entryDict = {}
     paramDict = {}
@@ -213,11 +215,11 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
             fileExt = fileExt.lstrip('.s')
             fileExt = ('.') + fileExt
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
 
     else:
         fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
         print("Compressing file.")
 
     fileWrite.close()
@@ -225,10 +227,15 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
 
 # function for replacing all instances of a specific actor with a new actor including actor specific parameters
 def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args):
+    endian = args.endian
     try:
         paramDB = util.loadActorDatabase()
     except:
         return
+    if (args.subStr == True):
+        startWith = True
+    else:
+        startWith = False
     fileDict = {}
     paramDict = {}
     entryDict = {}
@@ -254,28 +261,57 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
             iterate += 1
 
             for key in entryDict.keys():
-                if (str(entryDict.get(key)).lower() == str(convFrom).lower()):
-                    entryDict.update({'UnitConfigName': convTo})
-#                    print(dict(entryDict.get('!Parameters')))
-                    if (paramDB.get(convTo) is not None):
-                        paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
-                        paramDict.update((paramDBGet))
-#                        print(paramDict)
-#                        print(paramDBGet)
-                        entryDict.update({"!Parameters": dict(paramDict)})
-#                        print(oead.byml.Hash(paramDict))
-#                        print(entryDict)
-#                        print(paramDict)
-#                        entryDict.update({"!Parameters": paramDict})
-#                        print(util.dictParamsToByml(paramDB.get(convTo)))
+                if (startWith == True):
+                    if (str(entryDict.get(key)).lower().startswith(str(convFrom).lower()) == True):
+                        entryDict.update({'UnitConfigName': convTo})
+#                        print('using startswith')
+#                        print(dict(entryDict.get('!Parameters')))
+                        if (paramDB.get(convTo) is not None):
+                            paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
+                            paramDict.update((paramDBGet))
+#                            print(paramDict)
+#                           print(paramDBGet)
+                            entryDict.update({"!Parameters": dict(paramDict)})
+#                            print(oead.byml.Hash(paramDict))
+#                            print(entryDict)
+#                            print(paramDict)
+#                            entryDict.update({"!Parameters": paramDict})
+#                            print(util.dictParamsToByml(paramDB.get(convTo)))
+                        else:
+                            try:
+                                entryDict.pop(str("!Parameters"))
+                            except:
+                                continue
+                        break
                     else:
-                        try:
-                            entryDict.pop(str("!Parameters"))
-                        except:
-                            continue
-                    break
+                        continue
+
+                elif(startWith == False):
+                    if (str(entryDict.get(key)).lower() == str(convFrom).lower()):
+                        entryDict.update({'UnitConfigName': convTo})
+#                        print(dict(entryDict.get('!Parameters')))
+                        if (paramDB.get(convTo) is not None):
+                            paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
+                            paramDict.update((paramDBGet))
+#                            print(paramDict)
+#                           print(paramDBGet)
+                            entryDict.update({"!Parameters": dict(paramDict)})
+#                            print(oead.byml.Hash(paramDict))
+#                            print(entryDict)
+#                            print(paramDict)
+#                            entryDict.update({"!Parameters": paramDict})
+#                            print(util.dictParamsToByml(paramDB.get(convTo)))
+                        else:
+                            try:
+                                entryDict.pop(str("!Parameters"))
+                            except:
+                                continue
+                        break
+                    else:
+                        continue
                 else:
-                    continue
+                    print('How did you end up here?')
+                    return
 #            try:
 #                print(dict(dict(entryDict).get('!Parameters')))
 #            except:
@@ -292,11 +328,11 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
                 fileExt = fileExt.lstrip('.s')
                 fileExt = ('.') + fileExt
                 fileWrite = open(fileName + fileExt, 'wb')
-                fileWrite.write(oead.byml.to_binary(fileDict, big_endian=endian))
+                fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
 
         else:
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=endian)))
+            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
             print("Compressing file.")
 
         fileWrite.close()
