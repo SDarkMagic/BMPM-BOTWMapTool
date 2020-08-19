@@ -27,6 +27,7 @@ def main():
 
     remParser = subParser.add_parser('delete', help='Remove an actor or actors from the map file(s) based on either name or hashID')
     remParser.add_argument('ActorToDelete', help='The actor name or HashID you would like removed from the map file.')
+    remParser.add_argument('--fragment', '-f', dest='subStr', action='store_true', help='Whether or not the inputted search term is a prefix to search for or not.', required=False)
     remParser.add_argument('--type', '-t', metavar='value', dest='type', choices=['0', '1', 'hash', 'name'], help='Type of string that was inputted for actor removal(0 maps to hash and 1 to actor name, will default to actor name.)', required=False, default=1)
 
     convParser = subParser.add_parser('convert', help='Converts one actor to another based off of a template.')
@@ -34,6 +35,8 @@ def main():
     convParser.add_argument('--fragment', '-f', dest='subStr', action='store_true', help='Whether or not the inputted search term is a prefix to search for or not.', required=False)
     convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
     convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
+
+    endSwap = subParser.add_parser('swap', help='A function to detect and quickly convert the endianness of map files. (currently needs the "-be" flag to write to big endian...')
 
     genParser = subParser.add_parser('genDB', help='Generate the database of actors necessary for using the replace actor function. Only needs to be run once.')
 
@@ -113,7 +116,15 @@ def main():
     
 #    elif(args.subParserType == 'version'):
 #        print(f"BMPM-{str(version)}")
-
+    elif(args.subParserType == 'swap'):
+            if fileToOpen.is_dir():
+                fileList = util.checkDir(fileToOpen)
+                for fileToOpen in fileList:
+                    fileName = str(fileToOpen).split('.')[0]
+                    fileExt = ('.' + str(fileToOpen).split('.')[-1])
+                    functions.swapEnd(fileToOpen, fileName, fileExt, args)
+            else:
+                functions.swapEnd(fileToOpen, fileName, fileExt, args)
     else:
         print(f'The option {str(args.subParserType)} could not be found.')
 

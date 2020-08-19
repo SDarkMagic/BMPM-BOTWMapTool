@@ -109,13 +109,16 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
     endian = args.endian
     fileDict = {}
     entryDict = {}
-    paramDict = {}
     iterate = 0
     objList = []
     deleted = False
     fileToOpen = open(fileToOpen, 'rb').read()
     uncompressedFile = checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
+    if (args.subStr == True):
+        startWith = True
+    else:
+        startWith = False
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
     array = fileDict.get('Objs')
@@ -132,26 +135,21 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
         iterate += 1
 
         for key in entryDict.keys():
-            if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
-                deleted = True
-
-        if (entryDict.get('!Parameters') is not None):
-#                print('Found "!Parameters" value in entry from file')
-            paramDict.update(entryDict.get('!Parameters'))
-            for key in paramDict.keys():
-#                    print('Checking if param is the same as user input to be replaced')
-                if (str(paramDict.get(key)).lower() == str(actorToDel).lower()):
+            if (startWith == True):
+                if (str(entryDict.get(key)).lower().startswith(str(actorToDel).lower()) == True):
+                        deleted = True
+            elif(startWith == False):
+                if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
                     deleted = True
-        
-#        print(entryDict)
+            else:
+                deleted = False
+
         if (deleted != True):
             objList.append(oead.byml.Hash(entryDict))
         elif (deleted == True):
-            paramDict.clear()
             entryDict.clear()
             deleted = False
             continue
-        paramDict.clear()
         entryDict.clear()
         deleted = False
 
@@ -398,3 +396,29 @@ def genActorDatabase(mapDir):
     actorDatabaseFileWrite.write(json.dumps(paramDict, indent=2))
     actorDatabaseFileWrite.close()
     print(f'File was succesfully saved to {DBPath}')
+
+# Small function for changing the endianness of the map file
+def swapEnd(fileToOpen, fileName, fileExt, args):
+    fileToOpen = open(fileToOpen, 'rb').read()
+    uncompressedFile = checkCompression(fileToOpen)
+    extractByml = oead.byml.from_binary(uncompressedFile)
+    endian = args.endian
+    fileDict = dict(extractByml)
+    if endian == True:
+        print('Converting file to big endian.')
+    else:
+        print('Converting file to little endian.')
+    if (args.noCompression):
+            extList = []
+            fileExt = fileExt.lstrip('.s')
+            fileExt = ('.') + fileExt
+            fileWrite = open(fileName + fileExt, 'wb')
+            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
+
+    else:
+        fileWrite = open(fileName + fileExt, 'wb')
+        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
+        print("Compressing file.")
+
+    fileWrite.close()
+    print('Done!')
