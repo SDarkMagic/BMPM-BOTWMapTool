@@ -77,3 +77,13 @@ def dictParamsToByml(dictIn):
 #    print(dictOut)
     return(((dict(dictOut))))
     
+# A function for checking if a file is yaz0 compressed and then determining whether or not to decompress it based off of that
+def checkCompression(fileCheck):
+    fileInRead = fileCheck
+    if (oead.yaz0.get_header(fileInRead) is not None):
+        print("File is Yaz0 compressed, decompressing")
+        uncompressedFile = oead.yaz0.decompress(fileInRead)
+    else:
+        print('File is not compressed with Yaz0')
+        uncompressedFile = fileInRead
+    return(uncompressedFile)

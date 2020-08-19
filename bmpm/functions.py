@@ -40,17 +40,6 @@ def checkDataTypes(valIn):
     return(valOut)
     
 
-# A function for checking if a file is yaz0 compressed and then determining whether or not to decompress it based off of that
-def checkCompression(fileCheck):
-    fileInRead = fileCheck
-    if (oead.yaz0.get_header(fileInRead) is not None):
-        print("File is Yaz0 compressed, decompressing")
-        uncompressedFile = oead.yaz0.decompress(fileInRead)
-    else:
-        print('File is not compressed with Yaz0')
-        uncompressedFile = fileInRead
-    return(uncompressedFile)
-
 # Function for replacing inputted parameter with other user input
 def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args):
     endian = args.endian
@@ -60,7 +49,7 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
     iterate = 0
     objList = []
     fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = checkCompression(fileToOpen)
+    uncompressedFile = util.checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
@@ -113,7 +102,7 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
     objList = []
     deleted = False
     fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = checkCompression(fileToOpen)
+    uncompressedFile = util.checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
     if (args.subStr == True):
         startWith = True
@@ -128,45 +117,47 @@ def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
         actorToDel = oead.U32(value=actorToDel)
     elif (int(nameHash) == 1 or str(nameHash).lower() == 'name'):
         actorToDel = str(actorToDel)
+    if (array != None):
+        for entry in array:
+            exactItem = array[iterate]
+            entryDict.update(exactItem)
+            iterate += 1
 
-    for entry in array:
-        exactItem = array[iterate]
-        entryDict.update(exactItem)
-        iterate += 1
-
-        for key in entryDict.keys():
-            if (startWith == True):
-                if (str(entryDict.get(key)).lower().startswith(str(actorToDel).lower()) == True):
+            for key in entryDict.keys():
+                if (startWith == True):
+                    if (str(entryDict.get(key)).lower().startswith(str(actorToDel).lower()) == True):
+                            deleted = True
+                elif(startWith == False):
+                    if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
                         deleted = True
-            elif(startWith == False):
-                if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
-                    deleted = True
-            else:
-                deleted = False
+                else:
+                    deleted = False
 
-        if (deleted != True):
-            objList.append(oead.byml.Hash(entryDict))
-        elif (deleted == True):
+            if (deleted != True):
+                objList.append(oead.byml.Hash(entryDict))
+            elif (deleted == True):
+                entryDict.clear()
+                deleted = False
+                continue
             entryDict.clear()
             deleted = False
-            continue
-        entryDict.clear()
-        deleted = False
 
-    fileDict.update({'Objs': objList})
-    if (args.noCompression):
-            extList = []
-            fileExt = fileExt.lstrip('.s')
-            fileExt = ('.') + fileExt
+        fileDict.update({'Objs': objList})
+        if (args.noCompression):
+                extList = []
+                fileExt = fileExt.lstrip('.s')
+                fileExt = ('.') + fileExt
+                fileWrite = open(fileName + fileExt, 'wb')
+                fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
+
+        else:
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
-
+            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
+            print("Compressing file.")
+        fileWrite.close()
+        print('Done!')
     else:
-        fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
-        print("Compressing file.")
-    fileWrite.close()
-    print('Done!')
+        print('could not find "Objs" parameter in the map file.')
 
 # more specific version of replaceParam that requires a key: value pair to be searched; e.g. "unitConfigName: Enemy_Guardian_A"
 def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, replacementTerm, args):
@@ -177,7 +168,7 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
     iterate = 0
     objList = []
     fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = checkCompression(fileToOpen)
+    uncompressedFile = util.checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
@@ -240,7 +231,7 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
     iterate = 0
     objList = []
     fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = checkCompression(fileToOpen)
+    uncompressedFile = util.checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
     for key in extractByml.keys():
         fileDict.update({key: extractByml.get(key)})
@@ -356,7 +347,7 @@ def genActorDatabase(mapDir):
 #        print(mapFileList)
 #        print(filePath)
         fileOpen = open(filePath, 'rb')
-        uncompressedFile = checkCompression(fileOpen.read())
+        uncompressedFile = util.checkCompression(fileOpen.read())
         extractByml = oead.byml.from_binary(uncompressedFile)
         for key in extractByml.keys():
             fileDict.update({key: extractByml.get(key)})
@@ -400,7 +391,7 @@ def genActorDatabase(mapDir):
 # Small function for changing the endianness of the map file
 def swapEnd(fileToOpen, fileName, fileExt, args):
     fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = checkCompression(fileToOpen)
+    uncompressedFile = util.checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
     
     if uncompressedFile[:2] == b"BY":
