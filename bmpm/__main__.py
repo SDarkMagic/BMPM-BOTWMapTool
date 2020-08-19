@@ -36,7 +36,7 @@ def main():
     convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
     convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
 
-    endSwap = subParser.add_parser('swap', help='A function to detect and quickly convert the endianness of map files. (currently needs the "-be" flag to write to big endian...')
+    endSwap = subParser.add_parser('swap', help='A function to detect and quickly convert the endianness of map files.')
 
     genParser = subParser.add_parser('genDB', help='Generate the database of actors necessary for using the replace actor function. Only needs to be run once.')
 

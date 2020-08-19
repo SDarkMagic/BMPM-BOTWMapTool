@@ -402,7 +402,15 @@ def swapEnd(fileToOpen, fileName, fileExt, args):
     fileToOpen = open(fileToOpen, 'rb').read()
     uncompressedFile = checkCompression(fileToOpen)
     extractByml = oead.byml.from_binary(uncompressedFile)
-    endian = args.endian
+    
+    if uncompressedFile[:2] == b"BY":
+        endian = False
+    elif uncompressedFile[:2] == b"YB":
+        endian = True
+    else:
+        print('The endianness of the file could not be identified, most likely due to an invalid magic.')
+        return
+
     fileDict = dict(extractByml)
     if endian == True:
         print('Converting file to big endian.')
