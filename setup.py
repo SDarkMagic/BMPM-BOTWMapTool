@@ -29,5 +29,6 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         "oead>=1.1.1",
+        "blwpprod>=1.1.2",
     ],
 )

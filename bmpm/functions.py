@@ -3,6 +3,7 @@ import oead
 import os
 import pathlib
 import json
+import blwp
 from bmpm import util
 
 dataPath = util.data_dir()
@@ -95,69 +96,109 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
 
 # function for removing all instances of specified actor from a map file
 def removeActor(fileToOpen, fileName, fileExt, actorToDel, nameHash, args):
+    keysToRem = []
     endian = args.endian
     fileDict = {}
     entryDict = {}
     iterate = 0
     objList = []
     deleted = False
-    fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = util.checkCompression(fileToOpen)
-    extractByml = oead.byml.from_binary(uncompressedFile)
     if (args.subStr == True):
         startWith = True
     else:
         startWith = False
-    for key in extractByml.keys():
-        fileDict.update({key: extractByml.get(key)})
-    array = fileDict.get('Objs')
-
-    if (int(nameHash) == 0 or str(nameHash).lower() == 'hash'):
-        actorToDel = int(actorToDel)
-        actorToDel = oead.U32(value=actorToDel)
-    elif (int(nameHash) == 1 or str(nameHash).lower() == 'name'):
-        actorToDel = str(actorToDel)
-    if (array != None):
-        for entry in array:
-            exactItem = array[iterate]
-            entryDict.update(exactItem)
-            iterate += 1
-
-            for key in entryDict.keys():
-                if (startWith == True):
-                    if (str(entryDict.get(key)).lower().startswith(str(actorToDel).lower()) == True):
-                            deleted = True
-                elif(startWith == False):
-                    if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
-                        deleted = True
+#    print(fileExt)
+    if fileExt == '.sblwp' or fileExt == '.blwp':
+        fileToOpen = pathlib.Path(fileToOpen)
+        decodedData = blwp.prod.decoder(fileToOpen)
+        for key in decodedData.keys():
+            if startWith == True:
+                if str(key).lower().startswith(str(actorToDel).lower()) == True:
+                    keysToRem.append(key)
                 else:
-                    deleted = False
+                    continue
+            elif startWith == False:
+                if str(key).lower() == str(actorToDel).lower():
+                    keysToRem.append(key)
+                else:
+                    continue
+            else:
+                print('error')
+                continue
+        for key in keysToRem:
+            decodedData.pop(key)
+        if (args.noCompression):
+            extList = []
+            fileExt = fileExt.lstrip('.s')
+            fileExt = ('.') + fileExt
+            fileWrite = open(fileName + fileExt, 'wb')
+            fileWrite.write(blwp.prod.encoder(decodedData))
+            return
 
-            if (deleted != True):
-                objList.append(oead.byml.Hash(entryDict))
-            elif (deleted == True):
+        else:
+            fileWrite = open(fileName + fileExt, 'wb')
+            fileWrite.write(oead.yaz0.compress(blwp.prod.encoder(decodedData)))
+            print("Compressing file.")
+        fileWrite.close()
+        print('Done!')
+        return
+    elif fileExt == '.smubin' or fileExt == '.mubin':
+        fileToOpen = open(fileToOpen, 'rb').read()
+        uncompressedFile = util.checkCompression(fileToOpen)
+        extractByml = oead.byml.from_binary(uncompressedFile)
+        for key in extractByml.keys():
+            fileDict.update({key: extractByml.get(key)})
+        array = fileDict.get('Objs')
+
+        if (int(nameHash) == 0 or str(nameHash).lower() == 'hash'):
+            actorToDel = int(actorToDel)
+            actorToDel = oead.U32(value=actorToDel)
+        elif (int(nameHash) == 1 or str(nameHash).lower() == 'name'):
+            actorToDel = str(actorToDel)
+        if (array != None):
+            for entry in array:
+                exactItem = array[iterate]
+                entryDict.update(exactItem)
+                iterate += 1
+
+                for key in entryDict.keys():
+                    if (startWith == True):
+                        if (str(entryDict.get(key)).lower().startswith(str(actorToDel).lower()) == True):
+                                deleted = True
+                    elif(startWith == False):
+                        if (str(entryDict.get(key)).lower() == str(actorToDel).lower()):
+                            deleted = True
+                    else:
+                        deleted = False
+
+                if (deleted != True):
+                    objList.append(oead.byml.Hash(entryDict))
+                elif (deleted == True):
+                    entryDict.clear()
+                    deleted = False
+                    continue
                 entryDict.clear()
                 deleted = False
-                continue
-            entryDict.clear()
-            deleted = False
 
-        fileDict.update({'Objs': objList})
-        if (args.noCompression):
+            fileDict.update({'Objs': objList})
+            if (args.noCompression):
                 extList = []
                 fileExt = fileExt.lstrip('.s')
                 fileExt = ('.') + fileExt
                 fileWrite = open(fileName + fileExt, 'wb')
                 fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
+                return
 
+            else:
+                fileWrite = open(fileName + fileExt, 'wb')
+                fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
+                print("Compressing file.")
+            fileWrite.close()
+            print('Done!')
+            return
         else:
-            fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
-            print("Compressing file.")
-        fileWrite.close()
-        print('Done!')
-    else:
-        print('could not find "Objs" parameter in the map file.')
+            print('could not find "Objs" parameter in the map file.')
+            return
 
 # more specific version of replaceParam that requires a key: value pair to be searched; e.g. "unitConfigName: Enemy_Guardian_A"
 def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, replacementTerm, args):

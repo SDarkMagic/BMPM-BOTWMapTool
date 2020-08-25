@@ -29,6 +29,8 @@ def checkDir(dirToLoop):
             else:
                 if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
                     fileList.append(subDir)
+                elif ((str(subDir).split('.'))[-1] == 'sblwp' or (str(subDir).split('.'))[-1] == 'blwp'):
+                    fileList.append(subDir)
                 else:
                     print('File entered was not a proper map file.')
                     continue
