@@ -431,34 +431,35 @@ def genActorDatabase(mapDir):
 
 # Small function for changing the endianness of the map file
 def swapEnd(fileToOpen, fileName, fileExt, args):
-    fileToOpen = open(fileToOpen, 'rb').read()
-    uncompressedFile = util.checkCompression(fileToOpen)
-    extractByml = oead.byml.from_binary(uncompressedFile)
+    if str(fileExt).lower() == '.smubin' or str(fileExt).lower() == '.mubin':
+        fileToOpen = open(fileToOpen, 'rb').read()
+        uncompressedFile = util.checkCompression(fileToOpen)
+        extractByml = oead.byml.from_binary(uncompressedFile)
     
-    if uncompressedFile[:2] == b"BY":
-        endian = False
-    elif uncompressedFile[:2] == b"YB":
-        endian = True
-    else:
-        print('The endianness of the file could not be identified, most likely due to an invalid magic.')
-        return
+        if uncompressedFile[:2] == b"BY":
+            endian = False
+        elif uncompressedFile[:2] == b"YB":
+            endian = True
+        else:
+            print('The endianness of the file could not be identified, most likely due to an invalid magic.')
+            return
 
-    fileDict = dict(extractByml)
-    if endian == True:
-        print('Converting file to big endian.')
-    else:
-        print('Converting file to little endian.')
-    if (args.noCompression):
-            extList = []
-            fileExt = fileExt.lstrip('.s')
-            fileExt = ('.') + fileExt
+        fileDict = dict(extractByml)
+        if endian == True:
+            print('Converting file to big endian.')
+        else:
+            print('Converting file to little endian.')
+        if (args.noCompression):
+                extList = []
+                fileExt = fileExt.lstrip('.s')
+                fileExt = ('.') + fileExt
+                fileWrite = open(fileName + fileExt, 'wb')
+                fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
+
+        else:
             fileWrite = open(fileName + fileExt, 'wb')
-            fileWrite.write(oead.byml.to_binary(fileDict, big_endian=bool(endian)))
+            fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
+            print("Compressing file.")
 
-    else:
-        fileWrite = open(fileName + fileExt, 'wb')
-        fileWrite.write(oead.yaz0.compress(oead.byml.to_binary(fileDict, big_endian=bool(endian))))
-        print("Compressing file.")
-
-    fileWrite.close()
-    print('Done!')
+        fileWrite.close()
+        print('Done!')

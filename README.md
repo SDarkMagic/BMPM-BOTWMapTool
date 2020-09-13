@@ -27,3 +27,5 @@
  ~~Add option for big endian so that the wiiU/Cemu plebs can also use the tool~~
  <br>
  Incorporate into Ice Spear's UI?
+ <br>
+ Add function to add entries to the "!Parameters" section of an actor in a map file.
