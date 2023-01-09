@@ -1,14 +1,18 @@
 # __main__.py
 import argparse
+from posixpath import split
 import oead
 import os
 import pathlib
+import byml
 from bmpm import functions
 from bmpm import util
 from bmpm.__version__ import version
 
 
+
 def main():
+    defaultMapExts = ['mubin', 'smubin', 'blwp', 'sblwp']
 #   Cli Arguments Setup
     progDesc = "A program for bulk replacing and deleting parameters and actors in BotW BYML map files."
 
@@ -35,6 +39,8 @@ def main():
     convParser.add_argument('--fragment', '-f', dest='subStr', action='store_true', help='Whether or not the inputted search term is a prefix to search for or not.', required=False)
     convParser.add_argument('actorConvertFrom', help='The actor name or hashID you would like to be converted.')
     convParser.add_argument('actorConvertTo', type=str, help='Actor to convert to.')
+
+    compParser = subParser.add_parser('compressMap', help='Converts a map file yml to a smubin')
 
     endSwap = subParser.add_parser('swap', help='A function to detect and quickly convert the endianness of map files.')
 
@@ -66,7 +72,7 @@ def main():
 
 
         if fileToOpen.is_dir():
-            fileList = util.checkDir(fileToOpen)
+            fileList = util.checkDir(fileToOpen, defaultMapExts)
             for fileToOpen in fileList:
                 fileName = str(fileToOpen).split('.')[0]
                 fileExt = ('.' + str(fileToOpen).split('.')[-1])
@@ -87,7 +93,7 @@ def main():
         actorToDel = args.ActorToDelete
         nameHash = args.type
         if fileToOpen.is_dir():
-            fileList = util.checkDir(fileToOpen)
+            fileList = util.checkDir(fileToOpen, defaultMapExts)
             for fileToOpen in fileList:
                 fileName = str(fileToOpen).split('.')[0]
                 fileExt = ('.' + str(fileToOpen).split('.')[-1])
@@ -98,9 +104,9 @@ def main():
     elif (args.subParserType == 'convert'):
         actorToConv = args.actorConvertFrom
         actorConvTo = args.actorConvertTo
-        nameHash = args.type 
+        nameHash = args.type
         if fileToOpen.is_dir():
-            fileList = util.checkDir(fileToOpen)
+            fileList = util.checkDir(fileToOpen, defaultMapExts)
             for fileToOpen in fileList:
                 fileName = str(fileToOpen).split('.')[0]
                 fileExt = ('.' + str(fileToOpen).split('.')[-1])
@@ -110,21 +116,35 @@ def main():
 
     elif(args.subParserType == 'genDB'):
         if (input('This may take a while, are you sure you would like to continue? (y/n)').lower().startswith('y')):
-            functions.genActorDatabase(fileToOpen)
+            functions.genActorDatabase(fileToOpen, defaultMapExts)
         else:
             print('Cancelling operation.')
-    
+
 #    elif(args.subParserType == 'version'):
 #        print(f"BMPM-{str(version)}")
     elif(args.subParserType == 'swap'):
             if fileToOpen.is_dir():
-                fileList = util.checkDir(fileToOpen)
+                fileList = util.checkDir(fileToOpen, defaultMapExts)
                 for fileToOpen in fileList:
                     fileName = str(fileToOpen).split('.')[0]
                     fileExt = ('.' + str(fileToOpen).split('.')[-1])
                     functions.swapEnd(fileToOpen, fileName, fileExt, args)
             else:
                 functions.swapEnd(fileToOpen, fileName, fileExt, args)
+
+    elif(args.subParserType == 'compressMap'):
+        defaultMapExts = ['yml']
+        if fileToOpen.is_dir():
+            fileList = util.checkDir(fileToOpen, defaultMapExts)
+            for fileToOpen in fileList:
+                splitFile = str(fileToOpen).split('.')
+                #print('.'.join(splitFile))
+                fileName = splitFile[0]
+                fileExt = 'smubin'
+                savepath = f'{fileName}.{fileExt}'
+                util.compressByml(fileToOpen, savepath, bigEndian=args.endian)
+        else:
+                util.compressByml(fileToOpen, savepath, bigEndian=args.endian)
     else:
         print(f'The option {str(args.subParserType)} could not be found.')
 

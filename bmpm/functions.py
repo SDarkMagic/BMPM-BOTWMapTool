@@ -39,7 +39,7 @@ def checkDataTypes(valIn):
 #                                    print('The specified data did not match any of the BYML data formats. Please double check and see if it is formatted properly.')
                                     valOut = None
     return(valOut)
-    
+
 
 # Function for replacing inputted parameter with other user input
 def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamType, args):
@@ -73,7 +73,7 @@ def replaceParam(fileToOpen, fileName, fileExt, termToSearch, replacementParamTy
                     paramDict.update({key: replacementParamType})
                     entryDict.update({'!Parameters': paramDict})
 #                    print('Successfully replaced parameter')
-        
+
 #        print(entryDict)
         objList.append(oead.byml.Hash(entryDict))
         paramDict.clear()
@@ -233,7 +233,7 @@ def replaceSpfxParam(fileToOpen, fileName, fileExt, keyToSearch, termToSearch, r
                     paramDict.update({key: replacementTerm})
                     entryDict.update({'!Parameters': paramDict})
 #                    print('Successfully replaced parameter')
-        
+
 #        print(entryDict)
         objList.append(oead.byml.Hash(entryDict))
         paramDict.clear()
@@ -371,9 +371,9 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
         print(f'Error: Could not find the value {convTo} in the database. Check your spelling and/or capitalization or try regenerating the database.')
 
 # a function for generating the necessary actor database from ones game dump
-def genActorDatabase(mapDir):
+def genActorDatabase(mapDir, defaultExt):
     mapDir = pathlib.Path(mapDir)
-    mapFileList = util.checkDir(mapDir)
+    mapFileList = util.checkDir(mapDir, defaultExt)
     DBPath = pathlib.Path(dataPath / 'actorParamDatabase.json')
     if DBPath.exists():
         actorDatabaseFileRead = open(DBPath, 'rt')
@@ -383,7 +383,7 @@ def genActorDatabase(mapDir):
         paramDict = {}
     fileDict = {}
 #    iterCount = 0
-    
+
     for filePath in mapFileList:
 #        print(mapFileList)
 #        print(filePath)
@@ -422,7 +422,7 @@ def genActorDatabase(mapDir):
             fileOpen.close()
 #                iterCount = 0
         else:
-            print('No map files could be found...')        
+            print('No map files could be found...')
 
     actorDatabaseFileWrite = open(DBPath, 'wt')
     actorDatabaseFileWrite.write(json.dumps(paramDict, indent=2))
@@ -435,7 +435,7 @@ def swapEnd(fileToOpen, fileName, fileExt, args):
         fileToOpen = open(fileToOpen, 'rb').read()
         uncompressedFile = util.checkCompression(fileToOpen)
         extractByml = oead.byml.from_binary(uncompressedFile)
-    
+
         if uncompressedFile[:2] == b"BY":
             endian = False
         elif uncompressedFile[:2] == b"YB":

@@ -2,7 +2,23 @@ import pathlib
 import os
 import json
 import oead
+import byml
+import yaml
+import io
 from platform import system
+
+def compressByml(filePath, savePath, bigEndian, Version=2):
+    loader = yaml.CSafeLoader
+    byml.yaml_util.add_constructors(loader)
+    with open(filePath, 'r', encoding='utf-8') as ymlData:
+        yml = yaml.load(ymlData, Loader=loader)
+        buf = io.BytesIO()
+        byml.Writer(yml, be=bigEndian, version=Version).write(buf)
+        buf.seek(0)
+
+    with open(savePath, 'wb') as writeFile:
+        writeFile.write(oead.yaz0.compress(buf.read()))
+    return
 
 def data_dir():
     if system() == "Windows":
@@ -13,26 +29,24 @@ def data_dir():
         data_dir.mkdir(parents=True, exist_ok=True)
     return(data_dir)
 
-def checkDir(dirToLoop):
+def checkDir(dirToLoop, acceptableExts: list):
     fileList = []
     if dirToLoop.is_file():
         subDir = dirToLoop
-        if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
+        if ((str(subDir).split('.'))[-1] in acceptableExts):
             fileList.append(subDir)
         else:
-            print('File entered was not a proper map file.')
+            print(f'File: {dirToLoop} entered was not a proper map file.')
     else:
         for subDir in dirToLoop.iterdir():
 #            print(str(subDir).split('.')[-1])
             if subDir.is_dir():
-                fileList.extend(checkDir(subDir))
+                fileList.extend(checkDir(subDir, acceptableExts))
             else:
-                if ((str(subDir).split('.'))[-1] == 'smubin' or (str(subDir).split('.'))[-1] == 'mubin'):
-                    fileList.append(subDir)
-                elif ((str(subDir).split('.'))[-1] == 'sblwp' or (str(subDir).split('.'))[-1] == 'blwp'):
+                if ((str(subDir).split('.'))[-1] in acceptableExts):
                     fileList.append(subDir)
                 else:
-                    print('File entered was not a proper map file.')
+                    print(f'File: {subDir} entered was not a proper map file.')
                     continue
 #    print(fileList)
     return(fileList)
@@ -78,7 +92,7 @@ def dictParamsToByml(dictIn):
             dictOut.update({key: keyVal})
 #    print(dictOut)
     return(((dict(dictOut))))
-    
+
 # A function for checking if a file is yaz0 compressed and then determining whether or not to decompress it based off of that
 def checkCompression(fileCheck):
     fileInRead = fileCheck
