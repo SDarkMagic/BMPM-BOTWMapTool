@@ -4,6 +4,8 @@ import os
 import pathlib
 import json
 import blwp
+import actors
+import re
 from bmpm import util
 
 dataPath = util.data_dir()
@@ -262,13 +264,7 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
         paramDB = util.loadActorDatabase()
     except:
         return
-    if (args.subStr == True):
-        startWith = True
-    else:
-        startWith = False
     fileDict = {}
-    paramDict = {}
-    entryDict = {}
     iterate = 0
     objList = []
     fileToOpen = open(fileToOpen, 'rb').read()
@@ -285,72 +281,26 @@ def replaceActor(fileToOpen, fileName, fileExt, nameHash, convFrom, convTo, args
 
     if (convTo in paramDB.keys()):
         for entry in array:
-            exactItem = dict(entry)
-#            print(dict(entry))
-            entryDict.update(exactItem)
+            actor = actors.Actor(entry)
             iterate += 1
-
-            for key in entryDict.keys():
-                if (startWith == True):
-                    if (str(entryDict.get(key)).lower().startswith(str(convFrom).lower()) == True):
-                        entryDict.update({'UnitConfigName': convTo})
-#                        print('using startswith')
-#                        print(dict(entryDict.get('!Parameters')))
+            if (args.subStr == True):
+                if (nameHash == 'name' and re.search(convFrom.lower(), actor.name.lower())):
+                        actor.name = convTo
                         if (paramDB.get(convTo) is not None):
                             paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
-                            paramDict.update((paramDBGet))
-#                            print(paramDict)
-#                           print(paramDBGet)
-                            entryDict.update({"!Parameters": dict(paramDict)})
-#                            print(oead.byml.Hash(paramDict))
-#                            print(entryDict)
-#                            print(paramDict)
-#                            entryDict.update({"!Parameters": paramDict})
-#                            print(util.dictParamsToByml(paramDB.get(convTo)))
-                        else:
-                            try:
-                                entryDict.pop(str("!Parameters"))
-                            except:
-                                continue
-                        break
-                    else:
-                        continue
-
-                elif(startWith == False):
-                    if (str(entryDict.get(key)).lower() == str(convFrom).lower()):
-                        entryDict.update({'UnitConfigName': convTo})
-#                        print(dict(entryDict.get('!Parameters')))
-                        if (paramDB.get(convTo) is not None):
-                            paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
-                            paramDict.update((paramDBGet))
-#                            print(paramDict)
-#                           print(paramDBGet)
-                            entryDict.update({"!Parameters": dict(paramDict)})
-#                            print(oead.byml.Hash(paramDict))
-#                            print(entryDict)
-#                            print(paramDict)
-#                            entryDict.update({"!Parameters": paramDict})
-#                            print(util.dictParamsToByml(paramDB.get(convTo)))
-                        else:
-                            try:
-                                entryDict.pop(str("!Parameters"))
-                            except:
-                                continue
-                        break
-                    else:
-                        continue
+                            actor.params.update((paramDBGet))
                 else:
-                    print('How did you end up here?')
-                    return
-#            try:
-#                print(dict(dict(entryDict).get('!Parameters')))
-#            except:
-#                print('woops')
-            objList.append(dict(entryDict))
-            entryDict.clear()
-            paramDict.clear()
-#        print(objList)
-#        print(objList)
+                    continue
+            else:
+                if (nameHash == 'name' and actor.name.lower() == convFrom.lower()):
+                    actor.name = convTo
+                    if (paramDB.get(convTo) is not None):
+                        paramDBGet = util.dictParamsToByml(paramDB.get(convTo))
+                        actor.params.update(paramDBGet)
+                else:
+                    continue
+            actor.update()
+            objList.append(dict(actor.raw))
         fileDict.update({'Objs': oead.byml.Array(objList)})
         fileDict = (fileDict)
         if (args.noCompression):
